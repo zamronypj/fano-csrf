@@ -1,1 +1,16 @@
-{ "appName" : "MyApp" }
+{
+    "appName" : "MyApp",
+
+    "baseUrl" : "http://fano-csrf.zamroni",
+
+    "session" : {
+        "name" : "fano_sess",
+        "dir" : "storages/sessions/"
+    },
+
+    "cookie" : {
+        "name" : "fano_sess",
+        "domain" : "fano-csrf.zamroni",
+        "maxAge" : 3600
+    }
+}

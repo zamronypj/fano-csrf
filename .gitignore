@@ -26,6 +26,7 @@ cgi-bin/app.cgi
 # Ignore generated log files
 #----------------------------------------------
 storages/logs/*
+storages/sessions/*
 
 #----------------------------------------------
 # Do not ignore README.md
@@ -73,4 +74,3 @@ fp.ini
 # Ignore Visual Studio Code generated files
 #----------------------------------------------
 .vscode/
-

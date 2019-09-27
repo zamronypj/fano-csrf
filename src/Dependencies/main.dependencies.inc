@@ -5,4 +5,3 @@
  * @copyright Copyright (c) [[COPYRIGHT_YEAR]] [[COPYRIGHT_HOLDER]]
  * @license   [[LICENSE_URL]] ([[LICENSE]])
  *------------------------------------------------------------- *)
-
