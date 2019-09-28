@@ -35,9 +35,24 @@ uses
     SubmitController;
 
     function TSubmitControllerFactory.build(const container : IDependencyContainer) : IDependency;
+    var fileReader : IFileReader;
+        templateParser : ITemplateParser;
+        config : IAppConfiguration;
     begin
-        //build your controller instance here.
-        //container will gives you access to all registered services
-        result := TSubmitController.create();
+        config := container.get(GuidToString(IAppConfiguration)) as IAppConfiguration;
+        templateParser:= TSimpleTemplateParser.create('{{', '}}');
+        fileReader:= TStringFileReader.create();
+        result := TSubmitController.create(
+            TTemplateView.create(
+                //our application binary is in public directory
+                //so we need to go up one level to get correct path
+                extractFileDir(getCurrentDir()) + '/resources/Templates/Submit/index.html',
+                templateParser,
+                fileReader
+            ),
+            (TViewParameters.create() as IViewParameters)
+                .setVar('baseUrl', config.getString('baseUrl'))
+                .setVar('appName', config.getString('appName'))
+        );
     end;
 end.

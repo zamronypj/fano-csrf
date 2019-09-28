@@ -121,6 +121,7 @@ uses
         config := container.get(GuidToString(IAppConfiguration)) as IAppConfiguration;
         buildSessionManager(container, config);
         buildDispatcher(container, config);
+        buildCsrfMiddleware(container);
         {$INCLUDE Dependencies/dependencies.inc}
     end;
 

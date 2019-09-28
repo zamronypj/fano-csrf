@@ -23,7 +23,7 @@ type
      *
      * @author [[AUTHOR_NAME]] <[[AUTHOR_EMAIL]]>
      *------------------------------------------------*)
-    TSubmitController = class(TAbstractController)
+    TSubmitController = class(TController)
     public
         function handleRequest(
             const request : IRequest;
@@ -40,9 +40,8 @@ implementation
         const args : IRouteArgsReader
     ) : IResponse;
     begin
-        {---put your code here, for example : ---}
-        response.body().write('Submit controller');
-        result := response;
+        viewParams.setVar('email', request.getParsedBodyParam('email'));
+        result := inherited handleRequest(request, response, args);
     end;
 
 end.

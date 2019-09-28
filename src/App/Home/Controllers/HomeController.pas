@@ -68,7 +68,7 @@ implementation
     begin
         sess := fSessionManager.getSession(request);
         viewParams.setVar('csrfName', sess.getVar('csrf_name'));
-        viewParams.setVar('csrfValue', sess.getVar('csrf_value'));
+        viewParams.setVar('csrfToken', sess.getVar('csrf_token'));
         result := inherited handleRequest(request, response, args);
     end;
 

@@ -18,23 +18,17 @@
     <!-- Header -->
     <header id="header">
         <h1>{{appName}}</h1>
-        <p>This is to demonstrate CSRF protection in Fano Framework</p>
-        </header>
-
-        <!-- Signup Form -->
-        <form id="signup-form" method="post" action="/">
-            <input type="hidden" name="csrf_name" value="{{csrfName}}">
-            <input type="hidden" name="csrf_token" value="{{csrfToken}}">
-            <input type="email" name="email" id="email" placeholder="Email Address" />
-            <input type="submit" value="Sign Up" />
-        </form>
+        <p>Thank you. Your email {{email}} is successfully registered.
+            <a href="{{baseUrl}}">Register another email.</a>
+        </p>
+    </header>
 
         <!-- Footer -->
         <footer id="footer">
             <ul class="icons">
                 <li><a href="https://fanoframework.github.io" class="icon fa-globe"><span class="label">Documentation</span></a></li>
                 <li><a href="https://github.com/fanoframework/fano-csrf" class="icon fa-github"><span class="label">GitHub</span></a></li>
-           </ul>
+            </ul>
             <ul class="copyright">
                 <li>&copy; {{appName}}</li>
                 <li>Credits: <a href="http://html5up.net">HTML5 UP</a></li>
