@@ -30,7 +30,8 @@ type
             const config : IAppConfiguration
         );
         procedure buildCsrfMiddleware(
-            const container : IDependencyContainer
+            const container : IDependencyContainer;
+            const config : IAppConfiguration
         );
     protected
         procedure buildDependencies(const container : IDependencyContainer); override;
@@ -86,12 +87,15 @@ uses
         );
     end;
 
-    procedure TBootstrapApp.buildCsrfMiddleware(const container : IDependencyContainer);
+    procedure TBootstrapApp.buildCsrfMiddleware(
+        const container : IDependencyContainer;
+        const config : IAppConfiguration
+    );
     var appMiddlewares : IMiddlewareList;
     begin
         container.add(
             'verifyCsrfToken',
-            TCsrfMiddlewareFactory.create()
+            TCsrfMiddlewareFactory.create(config.getString('secretKey'))
         );
         appMiddlewares := container.get(GuidToString(IMiddlewareList)) as IMiddlewareList;
         appMiddlewares.add(container.get('verifyCsrfToken') as IMiddleware)
@@ -121,14 +125,14 @@ uses
         config := container.get(GuidToString(IAppConfiguration)) as IAppConfiguration;
         buildSessionManager(container, config);
         buildDispatcher(container, config);
-        buildCsrfMiddleware(container);
+        buildCsrfMiddleware(container, config);
         {$INCLUDE Dependencies/dependencies.inc}
     end;
 
     procedure TBootstrapApp.buildRoutes(const container : IDependencyContainer);
     var router : IRouter;
     begin
-        router := container.get(GUIDTOString(IRouter)) as IRouter;
+        router := container.get(GUIDToString(IRouter)) as IRouter;
         try
             {$INCLUDE Routes/routes.inc}
         finally

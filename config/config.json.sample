@@ -12,5 +12,7 @@
         "name" : "fano_sess",
         "domain" : "fano-csrf.zamroni",
         "maxAge" : 3600
-    }
+    },
+
+    "secretKey" : "replace-with-your-own-secret-key"
 }
