@@ -1,6 +1,6 @@
 # Fano CSRF Application
 
-Exmple web application using which demonstrate how to use CSRF protection in Fano Framework.
+Example web application using which demonstrate how to use CSRF protection in Fano Framework.
 
 This project is generated using [Fano CLI](https://github.com/fanoframework/fano-cli)
 command line tools to help scaffolding web application using Fano Framework.
