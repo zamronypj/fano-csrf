@@ -15,7 +15,7 @@ uses
 
 type
 
-    TBootstrapApp = class(TSimpleSockFastCGIWebApplication)
+    TAppServiceProvider = class(TDaemonAppServiceProvider)
     private
         procedure buildConfig(const container : IDependencyContainer);
         procedure buildSessionManager(
@@ -33,9 +33,16 @@ type
             const container : IDependencyContainer;
             const config : IAppConfiguration
         );
-    protected
-        procedure buildDependencies(const container : IDependencyContainer); override;
-        procedure buildRoutes(const container : IDependencyContainer); override;
+    public
+        procedure register(const container : IDependencyContainer); override;
+    end;
+
+    TAppRoutes = class(TRouteBuilder)
+    public
+        procedure buildRoutes(
+            const container : IDependencyContainer;
+            const router  : IRouter
+        ); override;
     end;
 
 implementation
@@ -51,7 +58,7 @@ uses
     SubmitControllerFactory;
 
 
-    procedure TBootstrapApp.buildConfig(const container : IDependencyContainer);
+    procedure TAppServiceProvider.buildConfig(const container : IDependencyContainer);
     begin
         container.add(
             GuidToString(IAppConfiguration),
@@ -63,13 +70,13 @@ uses
         );
     end;
 
-    procedure TBootstrapApp.buildAppMiddleware(const container : IDependencyContainer);
+    procedure TAppServiceProvider.buildAppMiddleware(const container : IDependencyContainer);
     begin
         container.add(GuidToString(IMiddlewareList), TMiddlewareListFactory.create());
         container.alias(GuidToString(IMiddlewareLinkList), GuidToString(IMiddlewareList));
     end;
 
-    procedure TBootstrapApp.buildDispatcher(
+    procedure TAppServiceProvider.buildDispatcher(
         const container : IDependencyContainer;
         const config : IAppConfiguration
     );
@@ -78,7 +85,7 @@ uses
             GuidToString(IDispatcher),
             TSessionDispatcherFactory.create(
                 container.get(GuidToString(IMiddlewareLinkList)) as IMiddlewareLinkList,
-                container.get(GuidToString(IRouteMatcher)) as IRouteMatcher,
+                getRouteMatcher(),
                 TRequestResponseFactory.create(),
                 container.get(GuidToString(ISessionManager)) as ISessionManager,
                 (TCookieFactory.create()).domain(config.getString('cookie.domain')),
@@ -87,7 +94,7 @@ uses
         );
     end;
 
-    procedure TBootstrapApp.buildCsrfMiddleware(
+    procedure TAppServiceProvider.buildCsrfMiddleware(
         const container : IDependencyContainer;
         const config : IAppConfiguration
     );
@@ -101,7 +108,7 @@ uses
         appMiddlewares.add(container.get('verifyCsrfToken') as IMiddleware)
     end;
 
-    procedure TBootstrapApp.buildSessionManager(
+    procedure TAppServiceProvider.buildSessionManager(
         const container : IDependencyContainer;
         const config : IAppConfiguration
     );
@@ -117,7 +124,7 @@ uses
         );
     end;
 
-    procedure TBootstrapApp.buildDependencies(const container : IDependencyContainer);
+    procedure TAppServiceProvider.register(const container : IDependencyContainer);
     var config : IAppConfiguration;
     begin
         buildConfig(container);
@@ -129,14 +136,11 @@ uses
         {$INCLUDE Dependencies/dependencies.inc}
     end;
 
-    procedure TBootstrapApp.buildRoutes(const container : IDependencyContainer);
-    var router : IRouter;
+    procedure TAppRoutes.buildRoutes(
+        const container : IDependencyContainer;
+        const router : IRouter
+    );
     begin
-        router := container.get(GUIDToString(IRouter)) as IRouter;
-        try
-            {$INCLUDE Routes/routes.inc}
-        finally
-            router := nil;
-        end;
+        {$INCLUDE Routes/routes.inc}
     end;
 end.
