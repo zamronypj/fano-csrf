@@ -17,22 +17,18 @@ type
 
     TAppServiceProvider = class(TDaemonAppServiceProvider)
     private
-        procedure buildConfig(const container : IDependencyContainer);
-        procedure buildSessionManager(
-            const container : IDependencyContainer;
-            const config : IAppConfiguration
-        );
-        procedure buildAppMiddleware(
-            const container : IDependencyContainer
-        );
-        procedure buildDispatcher(
-            const container : IDependencyContainer;
-            const config : IAppConfiguration
-        );
         procedure buildCsrfMiddleware(
-            const container : IDependencyContainer;
+            const ctnr : IDependencyContainer;
             const config : IAppConfiguration
         );
+    protected
+        function buildAppConfig(const ctnr : IDependencyContainer) : IAppConfiguration; override;
+        function buildDispatcher(
+            const ctnr : IDependencyContainer;
+            const routeMatcher : IRouteMatcher;
+            const config : IAppConfiguration
+        ) : IDispatcher; override;
+
     public
         procedure register(const container : IDependencyContainer); override;
     end;
@@ -57,10 +53,9 @@ uses
     HomeControllerFactory,
     SubmitControllerFactory;
 
-
-    procedure TAppServiceProvider.buildConfig(const container : IDependencyContainer);
+    function TAppServiceProvider.buildAppConfig(const ctnr : IDependencyContainer) : IAppConfiguration;
     begin
-        container.add(
+        ctnr.add(
             GuidToString(IAppConfiguration),
             TJsonFileConfigFactory.create(
                 //our application binary is in public directory
@@ -68,52 +63,18 @@ uses
                 extractFileDir(getCurrentDir()) + '/config/config.json'
             )
         );
+        result := ctnr.get(GuidToString(IAppConfiguration)) as IAppConfiguration;
     end;
 
-    procedure TAppServiceProvider.buildAppMiddleware(const container : IDependencyContainer);
-    begin
-        container.add(GuidToString(IMiddlewareList), TMiddlewareListFactory.create());
-        container.alias(GuidToString(IMiddlewareLinkList), GuidToString(IMiddlewareList));
-    end;
-
-    procedure TAppServiceProvider.buildDispatcher(
-        const container : IDependencyContainer;
+    function TAppServiceProvider.buildDispatcher(
+        const ctnr : IDependencyContainer;
+        const routeMatcher : IRouteMatcher;
         const config : IAppConfiguration
-    );
+    ) : IDispatcher;
     begin
-        container.add(
-            GuidToString(IDispatcher),
-            TSessionDispatcherFactory.create(
-                container.get(GuidToString(IMiddlewareLinkList)) as IMiddlewareLinkList,
-                getRouteMatcher(),
-                TRequestResponseFactory.create(),
-                container.get(GuidToString(ISessionManager)) as ISessionManager,
-                (TCookieFactory.create()).domain(config.getString('cookie.domain')),
-                config.getInt('cookie.maxAge')
-            )
-        );
-    end;
+        ctnr.add('appMiddlewares', TMiddlewareListFactory.create());
 
-    procedure TAppServiceProvider.buildCsrfMiddleware(
-        const container : IDependencyContainer;
-        const config : IAppConfiguration
-    );
-    var appMiddlewares : IMiddlewareList;
-    begin
-        container.add(
-            'verifyCsrfToken',
-            TCsrfMiddlewareFactory.create(config.getString('secretKey'))
-        );
-        appMiddlewares := container.get(GuidToString(IMiddlewareList)) as IMiddlewareList;
-        appMiddlewares.add(container.get('verifyCsrfToken') as IMiddleware)
-    end;
-
-    procedure TAppServiceProvider.buildSessionManager(
-        const container : IDependencyContainer;
-        const config : IAppConfiguration
-    );
-    begin
-        container.add(
+        ctnr.add(
             GuidToString(ISessionManager),
             TJsonFileSessionManagerFactory.create(
                 config.getString('session.name'),
@@ -122,16 +83,39 @@ uses
                 extractFileDir(getCurrentDir()) + '/' + config.getString('session.dir')
             )
         );
+
+        ctnr.add(
+            GuidToString(IDispatcher),
+            TSessionDispatcherFactory.create(
+                ctnr.get('appMiddlewares') as IMiddlewareLinkList,
+                routeMatcher,
+                TRequestResponseFactory.create(),
+                ctnr.get(GuidToString(ISessionManager)) as ISessionManager,
+                (TCookieFactory.create()).domain(config.getString('cookie.domain')),
+                config.getInt('cookie.maxAge')
+            )
+        );
+        result := ctnr.get(GuidToString(IDispatcher)) as IDispatcher;
+    end;
+
+    procedure TAppServiceProvider.buildCsrfMiddleware(
+        const ctnr : IDependencyContainer;
+        const config : IAppConfiguration
+    );
+    var appMiddlewares : IMiddlewareList;
+    begin
+        ctnr.add(
+            'verifyCsrfToken',
+            TCsrfMiddlewareFactory.create(config.getString('secretKey'))
+        );
+        appMiddlewares := ctnr.get('appMiddlewares') as IMiddlewareList;
+        appMiddlewares.add(ctnr.get('verifyCsrfToken') as IMiddleware);
     end;
 
     procedure TAppServiceProvider.register(const container : IDependencyContainer);
     var config : IAppConfiguration;
     begin
-        buildConfig(container);
-        buildAppMiddleware(container);
         config := container.get(GuidToString(IAppConfiguration)) as IAppConfiguration;
-        buildSessionManager(container, config);
-        buildDispatcher(container, config);
         buildCsrfMiddleware(container, config);
         {$INCLUDE Dependencies/dependencies.inc}
     end;
