@@ -66,9 +66,9 @@ implementation
     ) : IResponse;
     var sess : ISession;
     begin
-        sess := fSessionManager.getSession(request);
-        viewParams.setVar('csrfName', sess.getVar('csrf_name'));
-        viewParams.setVar('csrfToken', sess.getVar('csrf_token'));
+        sess := fSessionManager[request];
+        viewParams['csrfName'] := sess['csrf_name'];
+        viewParams['csrfToken'] := sess['csrf_token'];
         result := inherited handleRequest(request, response, args);
     end;
 
